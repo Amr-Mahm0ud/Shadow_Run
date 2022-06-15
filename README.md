@@ -1,6 +1,9 @@
 # multi_media_game
 
-A new Flutter project.
+A Shadow_Run simple Game with enemies to attack.
+Get Storage to save high score.
+Levels of speed to increase difficulty.
+Changing Theme randomly between two themes every 50 points.
 
 ## Getting Started
 
