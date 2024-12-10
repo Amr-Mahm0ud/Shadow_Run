@@ -225,9 +225,9 @@ class _GameState extends State<StartGame> with SingleTickerProviderStateMixin {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(size.height),
                 ),
+                backgroundColor: Colors.black54,
                 padding:
                     const EdgeInsets.symmetric(horizontal: 30, vertical: 45),
-                primary: Colors.black54,
                 elevation: 0,
               ),
               onPressed: () {
