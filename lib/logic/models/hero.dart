@@ -1,13 +1,13 @@
 class HeroCharacter {
-  List runImages = [
+  final List<String> runImages = const [
     'assets/images/run1.png',
     'assets/images/run4.png',
     'assets/images/run2.png',
     'assets/images/run3.png',
   ];
-  String jumpImage = 'assets/images/jump.png';
-  String attackImage = 'assets/images/attack.png';
-  List dieImages = [
+  final String jumpImage = 'assets/images/jump.png';
+  final String attackImage = 'assets/images/attack.png';
+  final List<String> dieImages = const [
     'assets/images/die1.png',
     'assets/images/die2.png',
     'assets/images/die3.png',
@@ -15,24 +15,17 @@ class HeroCharacter {
   String status = 'run';
   int lives = 3;
 
-  attack() {
+  void attack() {
     status = 'attack';
   }
 
-  run() {
+  void run() {
     status = 'run';
   }
 
-  die() {
-    //end game when x = 0.5 to -0.2
-
-    if (status != 'attack') {
-      if (lives == 0) {
-        status = 'die';
-      } else {
-        lives--;
-        status = 'die';
-      }
-    }
+  void die() {
+    if (status == 'attack') return;
+    if (lives > 0) lives--;
+    status = 'die';
   }
 }

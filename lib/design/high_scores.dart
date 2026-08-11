@@ -20,15 +20,15 @@ class HighScores extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              'First: ' + res[0].toString(),
+              'First: ${res[0]}',
               style: Theme.of(context).textTheme.headlineMedium,
             ),
             Text(
-              'Second: ' + res[1].toString(),
+              'Second: ${res[1]}',
               style: Theme.of(context).textTheme.headlineMedium,
             ),
             Text(
-              'Third: ' + res[2].toString(),
+              'Third: ${res[2]}',
               style: Theme.of(context).textTheme.headlineMedium,
             ),
           ],

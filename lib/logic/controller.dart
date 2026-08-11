@@ -1,26 +1,27 @@
 import 'package:get_storage/get_storage.dart';
 
 class HighScore {
-  final String key1 = 'first';
-  final String key2 = 'second';
-  final String key3 = 'third';
-  final box = GetStorage();
+  static const String _key1 = 'first';
+  static const String _key2 = 'second';
+  static const String _key3 = 'third';
 
-  saveScore(first, second, third) {
-    box.write(key1, first);
-    box.write(key2, second);
-    box.write(key3, third);
+  final GetStorage _box = GetStorage();
+
+  void saveScore(int first, int second, int third) {
+    _box.write(_key1, first);
+    _box.write(_key2, second);
+    _box.write(_key3, third);
   }
 
-  readScores() {
+  List<int> readScores() {
     return [
-      box.read(key1) ?? 0,
-      box.read(key2) ?? 0,
-      box.read(key3) ?? 0,
+      _box.read(_key1) ?? 0,
+      _box.read(_key2) ?? 0,
+      _box.read(_key3) ?? 0,
     ];
   }
 
-  updateScore(score) {
+  void updateScore(int score) {
     final scores = readScores();
     final first = scores[0];
     final second = scores[1];

@@ -1,16 +1,14 @@
 class Enemy {
-  String image = 'assets/images/enemy.png';
-
+  final String image = 'assets/images/enemy.png';
   String status = 'run';
 
-  die(heroStatus) {
-    //end game when x = 0.5 to -0.2
+  void die(String heroStatus) {
     if (heroStatus == 'attack') {
       status = 'die';
     }
   }
 
-  run() {
+  void run() {
     status = 'run';
   }
 }

@@ -3,9 +3,12 @@ import 'package:flutter/services.dart';
 import 'package:get_storage/get_storage.dart';
 import 'design/home.dart';
 
-void main() async {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.landscapeLeft,
+  ]);
   await GetStorage.init();
-
   runApp(const MyApp());
 }
 
@@ -14,9 +17,6 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.landscapeLeft,
-    ]);
     return const MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Home(),

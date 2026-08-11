@@ -49,7 +49,7 @@ class Home extends StatelessWidget {
                   ),
                   ElevatedButton(
                     child: const Text('High Scores'),
-                    onPressed: () async {
+                    onPressed: () {
                       Navigator.of(context).push(MaterialPageRoute(
                           builder: (context) => const HighScores()));
                     },
