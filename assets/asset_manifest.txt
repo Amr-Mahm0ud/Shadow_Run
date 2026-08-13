@@ -1,0 +1,5 @@
+# Auto-generated asset layout
+frame=96x128
+cols=6
+anims=idle,run,jump,fall,land,slide,dodge,melee,ranged,hit,death,ability,ultimate
+characters=runner,hunter,blade,phantom

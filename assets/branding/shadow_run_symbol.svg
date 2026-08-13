@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none" role="img" aria-label="SHADOW//RUN symbol">
+  <defs>
+    <linearGradient id="metal" x1="24" y1="16" x2="108" y2="112" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="45%" stop-color="#E8EDF5"/>
+      <stop offset="100%" stop-color="#8B94A6"/>
+    </linearGradient>
+    <linearGradient id="cyan" x1="40" y1="18" x2="112" y2="116" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#D7FFFC"/>
+      <stop offset="40%" stop-color="#00E5FF"/>
+      <stop offset="100%" stop-color="#008EAB"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Soft violet depth (does not fill whole canvas) -->
+  <g opacity="0.4" transform="translate(3 4)">
+    <path d="M54 18 H26 L18 30 L48 30 L30 100 H58 L76 30 H102 L94 18 H70 L54 18 Z" fill="#7B2CFF"/>
+    <path d="M70 100 H102 L110 88 H78 L70 100 Z" fill="#7B2CFF"/>
+  </g>
+
+  <!-- Twin-slash core (brand DNA from SHADOW//RUN) -->
+  <path d="M50 16 L28 100 H48 L70 16 H50 Z" fill="url(#metal)"/>
+  <path d="M76 16 L54 100 H74 L96 16 H76 Z" fill="url(#cyan)"/>
+
+  <!-- Top S hook (shadow terminal) -->
+  <path d="M70 16 H24 L14 32 H60 L70 16 Z" fill="url(#metal)"/>
+  <!-- Bottom S hook (run terminal) -->
+  <path d="M54 100 H110 L120 84 H64 L54 100 Z" fill="url(#cyan)"/>
+
+  <!-- Micro energy edge -->
+  <path d="M62 28 L80 28" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="square" opacity="0.55"/>
+  <path d="M48 88 L66 88" stroke="#00E5FF" stroke-width="2.5" stroke-linecap="square" opacity="0.75"/>
+</svg>

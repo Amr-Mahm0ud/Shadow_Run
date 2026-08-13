@@ -1,19 +1,36 @@
-# multi_media_game
+# Shadow Run
 
-A Shadow_Run simple Game with enemies to attack.
-Get Storage to save high score.
-Levels of speed to increase difficulty.
-Changing Theme randomly between two themes every 50 points.
+Fast-paced arcade survival game built with Flutter.
 
-## Getting Started
+Survive waves of enemies, collect coins and XP, choose power-ups, unlock characters, and upgrade between runs.
 
-This project is a starting point for a Flutter application.
+## Status
 
-A few resources to get you started if this is your first Flutter project:
+**Active gameplay:** 2.5D cyberpunk **action runner** (gesture combat — no giant ATTACK button).
 
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
+See:
 
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- [`docs/ACTION_RUNNER_DESIGN.md`](docs/ACTION_RUNNER_DESIGN.md)
+- [`docs/IMPLEMENTATION_STATUS.md`](docs/IMPLEMENTATION_STATUS.md)
+- [`docs/PHASE_2_CURRENT_STATE.md`](docs/PHASE_2_CURRENT_STATE.md)
+
+## Run
+
+```bash
+flutter pub get
+flutter run
+```
+
+## Test
+
+```bash
+flutter analyze
+flutter test
+```
+
+## Notes
+
+- Landscape gameplay
+- Local persistence via GetStorage (repository-backed)
+- Analytics/crash reporting currently use development adapters (no production backends configured yet)
+- Android/iOS application IDs remain `com.example.*` until store IDs are finalized

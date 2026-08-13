@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 220" fill="none" role="img" aria-label="SHADOW//RUN logo">
+  <defs>
+    <linearGradient id="metal" x1="0" y1="40" x2="0" y2="180" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="48%" stop-color="#E8EDF5"/>
+      <stop offset="100%" stop-color="#9AA3B5"/>
+    </linearGradient>
+    <linearGradient id="cyan" x1="0" y1="40" x2="0" y2="180" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#D7FFFC"/>
+      <stop offset="45%" stop-color="#00E5FF"/>
+      <stop offset="100%" stop-color="#00A0BC"/>
+    </linearGradient>
+    <linearGradient id="symMetal" x1="24" y1="40" x2="140" y2="180" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="45%" stop-color="#E8EDF5"/>
+      <stop offset="100%" stop-color="#8B94A6"/>
+    </linearGradient>
+    <linearGradient id="symCyan" x1="40" y1="40" x2="150" y2="180" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#D7FFFC"/>
+      <stop offset="40%" stop-color="#00E5FF"/>
+      <stop offset="100%" stop-color="#008EAB"/>
+    </linearGradient>
+  </defs>
+
+  <g transform="translate(12 36) scale(1.15)">
+    <g opacity="0.38" transform="translate(3 4)">
+      <path d="M54 18 H26 L18 30 L48 30 L30 100 H58 L76 30 H102 L94 18 H70 L54 18 Z" fill="#7B2CFF"/>
+      <path d="M70 100 H102 L110 88 H78 L70 100 Z" fill="#7B2CFF"/>
+    </g>
+    <path d="M50 16 L28 100 H48 L70 16 H50 Z" fill="url(#symMetal)"/>
+    <path d="M76 16 L54 100 H74 L96 16 H76 Z" fill="url(#symCyan)"/>
+    <path d="M70 16 H24 L14 32 H60 L70 16 Z" fill="url(#symMetal)"/>
+    <path d="M54 100 H110 L120 84 H64 L54 100 Z" fill="url(#symCyan)"/>
+    <path d="M62 28 L80 28" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="square" opacity="0.55"/>
+    <path d="M48 88 L66 88" stroke="#00E5FF" stroke-width="2.5" stroke-linecap="square" opacity="0.75"/>
+  </g>
+
+  <g fill="url(#metal)" fill-rule="evenodd" transform="translate(176 64)">
+    <path d="M8 14L20 2H56L68 14V34L56 44H28V52H56L68 62V80L56 90H16L4 78V58L16 48H44V40H16L4 30V14H8Z"/>
+    <path d="M84 0H100V36H124V0H140V90H124V52H100V90H84V0Z"/>
+    <path d="M154 90H170L180 58H212L222 90H240L206 0H186L154 90ZM188 44H204L195 18L188 44Z"/>
+    <path d="M254 0H296L322 26V64L296 90H254V0ZM270 16V74H292L306 60V30L292 16H270Z"/>
+    <path d="M342 0H394L418 24V66L394 90H342L318 66V24L342 0ZM348 16L334 30V60L348 74H388L402 60V30L388 16H348Z"/>
+    <path d="M432 0H450L464 56L478 0H498L514 56L528 0H548L522 90H500L488 40L476 90H454L432 0Z"/>
+  </g>
+  <g fill="url(#cyan)" transform="translate(734 64)">
+    <path d="M20 0L0 90H18L38 0H20Z"/>
+    <path d="M48 0L28 90H46L66 0H48Z"/>
+  </g>
+  <g fill="url(#cyan)" fill-rule="evenodd" transform="translate(814 64)">
+    <path d="M0 0H44L62 18V42L46 54L64 90H44L30 56H16V90H0V0ZM16 14V40H40L48 32V22L40 14H16Z"/>
+    <path d="M78 0H94V56L106 74H126L138 56V0H154V60L132 90H100L78 60V0Z"/>
+    <path d="M168 0H186L220 58V0H238V90H220L186 32V90H168V0Z"/>
+  </g>
+</svg>

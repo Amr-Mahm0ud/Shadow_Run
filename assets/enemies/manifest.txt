@@ -1,0 +1,5 @@
+# SHADOW//RUN enemy assets
+frame=96x128
+cols=4
+anims=idle,move,attack,hit,death,ranged,special,fly
+enemies=grunt,raptor,sentinel,shocker,guardian,drone_swarmer,shield_maiden,executioner,void_stalker,scout_drone,missile_drone,bomber_drone,sniper_drone,steel_brute,war_machine,fortress,chaos_engineer,rift_reaper,corrupted_wraith,juggernaut,overseer,warp_behemoth,apex_sentinel
