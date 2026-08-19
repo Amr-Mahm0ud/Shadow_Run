@@ -200,6 +200,46 @@ class _SettingsScreenState extends State<SettingsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
+                  l10n.controlScheme,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: Colors.white,
+                      ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  l10n.controlSchemeSubtitle,
+                  style: const TextStyle(color: AppColors.mist, fontSize: 13),
+                ),
+                const SizedBox(height: 10),
+                SegmentedButton<ControlScheme>(
+                  showSelectedIcon: false,
+                  segments: [
+                    ButtonSegment(
+                      value: ControlScheme.swipes,
+                      icon: const Icon(Icons.swipe_rounded, size: 18),
+                      label: Text(l10n.controlsSwipes),
+                    ),
+                    ButtonSegment(
+                      value: ControlScheme.buttons,
+                      icon: const Icon(Icons.gamepad_outlined, size: 18),
+                      label: Text(l10n.controlsButtons),
+                    ),
+                  ],
+                  selected: {_settings.controlScheme},
+                  onSelectionChanged: (selected) {
+                    _update((s) => s.controlScheme = selected.first);
+                  },
+                ),
+              ],
+            ),
+          ),
+          const Divider(),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
                   l10n.language,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         color: Colors.white,

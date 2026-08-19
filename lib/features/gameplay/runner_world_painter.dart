@@ -241,7 +241,7 @@ class RunnerWorldPainter extends CustomPainter {
 
   void _paintPlayer(Canvas canvas, Size size) {
     final p = sim.player;
-    final x = RunnerConfig.playerX + p.xOffset;
+    final x = sim.playerWorldX + p.xOffset;
     final y = _sy(p.y + p.height);
     final w = RunnerConfig.playerWidth * (_char.id == 'blade' ? 1.15 : 1);
     final h = p.height * (_char.id == 'blade' ? 1.08 : 1);
@@ -331,7 +331,11 @@ class RunnerWorldPainter extends CustomPainter {
       canvas.saveLayer(dst, paint);
       canvas.drawImageRect(sheet, src, dst, Paint());
       if (tint != null) {
-        canvas.drawRect(dst, Paint()..color = tint..blendMode = BlendMode.srcATop);
+        canvas.drawRect(
+            dst,
+            Paint()
+              ..color = tint
+              ..blendMode = BlendMode.srcATop);
       }
       canvas.restore();
       return;

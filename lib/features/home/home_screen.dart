@@ -27,7 +27,6 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _progress = AppServices.progress.read();
-    AppServices.feedback.setGameplayMusic(false);
   }
 
   void _refresh() => setState(() => _progress = AppServices.progress.read());

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/services.dart';
 
@@ -8,24 +10,29 @@ import '../service_locator.dart';
 /// Centralized audio + haptics for SHADOW//RUN.
 ///
 /// Categories: MASTER / MUSIC / SFX / UI with pooling and concurrency limits.
+/// BGM is a single looping player for the whole app; gameplay only ducks volume.
 class FeedbackService {
   FeedbackService();
 
   static const _musicAsset = 'shadow_run_main_theme.mp3';
   static const _poolSize = 6;
 
+  /// Menu uses the settings music volume; a run ducks to ~10% of that.
+  static const double gameplayMusicScale = 0.10;
+
   final List<AudioPlayer> _sfxPool = [];
   final Map<String, int> _activeByAsset = {};
   AudioPlayer? _music;
+  StreamSubscription<void>? _musicCompleteSub;
+  Future<void> _musicOp = Future<void>.value();
   int _poolIndex = 0;
-  bool _musicStarted = false;
+  int _gameplayRef = 0;
   bool _musicPaused = false;
-  bool _audioUnavailable = false;
+  bool _sfxUnavailable = false;
+  bool _musicUnavailable = false;
+  bool _audioContextReady = false;
   bool _inGameplay = false;
   String? _characterId;
-
-  /// Menu/app music is full setting volume; gameplay ducks under combat SFX.
-  static const double gameplayMusicScale = 0.55;
 
   AppSettings get _settings => AppServices.settings.read();
 
@@ -42,32 +49,77 @@ class FeedbackService {
   double get _sfxVol => (_master * _settings.sfxVolume.clamp(0, 1));
   double get _uiVol => (_master * _settings.uiVolume.clamp(0, 1));
 
+  /// SFX must mix with BGM — default audio focus (`gain`) pauses the music player.
+  AudioContext _mixContext({required bool music}) {
+    return AudioContext(
+      android: AudioContextAndroid(
+        contentType: music
+            ? AndroidContentType.music
+            : AndroidContentType.sonification,
+        usageType: AndroidUsageType.game,
+        audioFocus: AndroidAudioFocus.none,
+      ),
+      iOS: AudioContextIOS(
+        category: AVAudioSessionCategory.playback,
+        options: const {AVAudioSessionOptions.mixWithOthers},
+      ),
+    );
+  }
+
   void setCharacterProfile(String? characterId) => _characterId = characterId;
 
-  Future<void> _ensureSfxPool() async {
-    if (_audioUnavailable || _sfxPool.isNotEmpty) return;
+  Future<void> _runMusic(Future<void> Function() op) {
+    final run = _musicOp.then((_) => op());
+    _musicOp = run.catchError((_) {});
+    return run;
+  }
+
+  Future<void> _ensureAudioContext() async {
+    if (_audioContextReady) return;
     try {
+      await AudioPlayer.global.setAudioContext(_mixContext(music: true));
+      _audioContextReady = true;
+    } catch (_) {}
+  }
+
+  Future<void> _ensureSfxPool() async {
+    if (_sfxUnavailable || _sfxPool.isNotEmpty) return;
+    try {
+      await _ensureAudioContext();
       for (var i = 0; i < _poolSize; i++) {
         final p = AudioPlayer();
         await p.setPlayerMode(PlayerMode.lowLatency);
+        try {
+          await p.setAudioContext(_mixContext(music: false));
+        } catch (_) {}
         _sfxPool.add(p);
       }
     } catch (_) {
-      _audioUnavailable = true;
+      _sfxUnavailable = true;
     }
   }
 
   Future<AudioPlayer?> _musicPlayer() async {
-    if (_audioUnavailable) return null;
+    if (_musicUnavailable) return null;
     if (_music != null) return _music;
     try {
+      await _ensureAudioContext();
       final player = AudioPlayer();
+      try {
+        await player.setAudioContext(_mixContext(music: true));
+      } catch (_) {}
       await player.setReleaseMode(ReleaseMode.loop);
       await player.setVolume(_musicVol);
+      _musicCompleteSub?.cancel();
+      _musicCompleteSub = player.onPlayerComplete.listen((_) {
+        if (musicEnabled && !_musicPaused) {
+          unawaited(startMusic());
+        }
+      });
       _music = player;
       return player;
     } catch (_) {
-      _audioUnavailable = true;
+      _musicUnavailable = true;
       return null;
     }
   }
@@ -215,15 +267,23 @@ class FeedbackService {
     }
   }
 
-  Future<void> applyVolumes() async {
-    try {
-      await _music?.setVolume(_musicVol);
-    } catch (_) {}
+  Future<void> applyVolumes() {
+    return _runMusic(() async {
+      try {
+        await _music?.setVolume(_musicVol);
+      } catch (_) {}
+    });
   }
 
-  /// Keep BGM looping app-wide; duck while a run is active.
+  /// Duck BGM while a run screen is alive; restore menu volume when the last
+  /// run screen is gone. Never restarts the track — volume only.
   Future<void> setGameplayMusic(bool active) async {
-    _inGameplay = active;
+    if (active) {
+      _gameplayRef++;
+    } else if (_gameplayRef > 0) {
+      _gameplayRef--;
+    }
+    _inGameplay = _gameplayRef > 0;
     await applyVolumes();
     if (musicEnabled) {
       await startMusic();
@@ -233,68 +293,71 @@ class FeedbackService {
   Future<void> syncMusic() async {
     await applyVolumes();
     if (musicEnabled) {
-      if (_musicPaused) {
-        await resumeMusic();
-      } else {
-        await startMusic();
-      }
+      await startMusic();
     } else {
       await stopMusic();
     }
   }
 
-  Future<void> startMusic() async {
-    if (!musicEnabled) return;
-    final player = await _musicPlayer();
-    if (player == null) return;
-    try {
-      await player.setVolume(_musicVol);
-      if (_musicStarted && player.state == PlayerState.playing) return;
-      if (_musicStarted && _musicPaused) {
-        await player.resume();
-        _musicPaused = false;
-        return;
-      }
-      await player.setReleaseMode(ReleaseMode.loop);
-      await player.stop();
-      await player.play(AssetSource('audio/$_musicAsset'));
-      _musicStarted = true;
-      _musicPaused = false;
-    } catch (_) {
-      _musicStarted = false;
-    }
+  Future<void> startMusic() {
+    return _runMusic(_startMusicUnlocked);
   }
 
-  Future<void> pauseMusic() async {
+  Future<void> _startMusicUnlocked() async {
+    if (!musicEnabled) return;
+    var player = await _musicPlayer();
+    if (player == null) return;
     try {
-      if (_music != null && _music!.state == PlayerState.playing) {
-        await _music!.pause();
-        _musicPaused = true;
+      if (player.state == PlayerState.disposed) {
+        await _musicCompleteSub?.cancel();
+        _musicCompleteSub = null;
+        _music = null;
+        player = await _musicPlayer();
+        if (player == null) return;
       }
+      await player.setVolume(_musicVol);
+      switch (player.state) {
+        case PlayerState.playing:
+          _musicPaused = false;
+          return;
+        case PlayerState.paused:
+          await player.resume();
+          _musicPaused = false;
+          return;
+        case PlayerState.stopped:
+        case PlayerState.completed:
+        case PlayerState.disposed:
+          break;
+      }
+      await player.setReleaseMode(ReleaseMode.loop);
+      await player.play(AssetSource('audio/$_musicAsset'));
+      _musicPaused = false;
     } catch (_) {}
+  }
+
+  Future<void> pauseMusic() {
+    return _runMusic(() async {
+      try {
+        if (_music != null && _music!.state == PlayerState.playing) {
+          await _music!.pause();
+          _musicPaused = true;
+        }
+      } catch (_) {}
+    });
   }
 
   Future<void> resumeMusic() async {
     if (!musicEnabled) return;
-    try {
-      final player = await _musicPlayer();
-      if (player == null) return;
-      await player.setVolume(_musicVol);
-      if (_musicStarted && _musicPaused) {
-        await player.resume();
-        _musicPaused = false;
-        return;
-      }
-      await startMusic();
-    } catch (_) {}
+    await startMusic();
   }
 
-  Future<void> stopMusic() async {
-    try {
-      await _music?.stop();
-    } catch (_) {}
-    _musicStarted = false;
-    _musicPaused = false;
+  Future<void> stopMusic() {
+    return _runMusic(() async {
+      try {
+        await _music?.stop();
+      } catch (_) {}
+      _musicPaused = false;
+    });
   }
 
   Future<void> uiTap() async {
@@ -308,13 +371,11 @@ class FeedbackService {
   Future<void> pauseCue() async {
     if (!uiEnabled) return;
     await _playAsset('pause.wav', categoryVolume: _uiVol, gain: 1.0);
-    // Keep BGM playing during pause — music stays app-wide.
   }
 
   Future<void> resumeCue() async {
     if (!uiEnabled) return;
     await _playAsset('resume.wav', categoryVolume: _uiVol, gain: 1.0);
-    await startMusic();
   }
 
   Future<void> lightImpact() async {
@@ -347,6 +408,8 @@ class FeedbackService {
   }
 
   Future<void> dispose() async {
+    await _musicCompleteSub?.cancel();
+    _musicCompleteSub = null;
     await stopMusic();
     for (final p in _sfxPool) {
       await p.dispose();

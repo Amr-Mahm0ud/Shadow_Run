@@ -3,6 +3,7 @@ import 'package:shadow_run/core/constants/app_constants.dart';
 import 'package:shadow_run/data/local/key_value_store.dart';
 import 'package:shadow_run/data/repositories/high_score_repository.dart';
 import 'package:shadow_run/data/repositories/progress_repository.dart';
+import 'package:shadow_run/data/repositories/settings_repository.dart';
 
 void main() {
   late MemoryStore storage;
@@ -46,5 +47,14 @@ void main() {
     expect(top[0], 80);
     expect(top[1], 40);
     expect(top[2], 10);
+  });
+
+  test('settings persist control scheme', () async {
+    final repo = SettingsRepository(storage);
+    final settings = repo.read();
+    expect(settings.controlScheme, ControlScheme.swipes);
+    settings.controlScheme = ControlScheme.buttons;
+    await repo.save(settings);
+    expect(repo.read().controlScheme, ControlScheme.buttons);
   });
 }

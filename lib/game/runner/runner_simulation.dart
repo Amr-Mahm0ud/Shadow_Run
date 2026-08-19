@@ -28,6 +28,9 @@ class RunnerSimulation {
   final List<RunnerFloatingText> floatingTexts = [];
 
   RunnerPhase phase = RunnerPhase.countdown;
+
+  /// World X of the runner. Pushed right when on-screen buttons are enabled.
+  double playerWorldX = RunnerConfig.playerX;
   double scrollX = 0;
   double spawnTimer = 0;
   double shake = 0;
@@ -220,16 +223,14 @@ class RunnerSimulation {
   bool _jump({double power = 1}) {
     if (!player.onGround || player.sliding) return false;
     if (player.abilityTimer > 0 || player.ultimateTimer > 0) return false;
-    var p = power.clamp(0.75, 1.25);
-    if (player.disruptTimer > 0.4) p *= 0.65;
-    player.vy = RunnerConfig.jumpVelocity * player.jumpMul * p;
-    if (p > 1.05) {
-      player.vy = RunnerConfig.maxJumpVelocity * player.jumpMul * 0.92;
-    }
+    var p = power.clamp(0.92, 1.04);
+    if (player.disruptTimer > 0.4) p *= 0.8;
+    player.vy = (RunnerConfig.jumpVelocity * player.jumpMul * p)
+        .clamp(0, RunnerConfig.maxJumpVelocity * player.jumpMul);
     player.onGround = false;
     player.anim = PlayerAnim.jump;
     player.animTime = 0;
-    _burst(RunnerConfig.playerX, player.y + 8, 6, _accentColor);
+    _burst(playerWorldX, player.y + 8, 6, _accentColor);
     _sfx(RunnerSfx.jump);
     return true;
   }
@@ -258,7 +259,7 @@ class RunnerSimulation {
     player.xOffset = 0;
     player.anim = PlayerAnim.dodge;
     player.animTime = 0;
-    _burst(RunnerConfig.playerX, player.y + 36, 10, _accentColor);
+    _burst(playerWorldX, player.y + 36, 10, _accentColor);
     _spawnVfx('afterimage');
     _sfx(RunnerSfx.dodge);
     return true;
@@ -305,7 +306,7 @@ class RunnerSimulation {
     if (player.markActive) dmg *= 1.35;
     projectiles.add(
       RunnerProjectile(
-        x: RunnerConfig.playerX + 40,
+        x: playerWorldX + 40,
         y: player.y + player.height * 0.55,
         vx: RunnerConfig.rangedSpeed,
         damage: dmg,
@@ -316,7 +317,7 @@ class RunnerSimulation {
         colorValue: _accentColor,
       ),
     );
-    _burst(RunnerConfig.playerX + 36, player.y + 40, 8, _accentColor);
+    _burst(playerWorldX + 36, player.y + 40, 8, _accentColor);
     _spawnVfx('muzzle');
     shake = max(shake, 2.5);
     _sfx(RunnerSfx.ranged);
@@ -342,7 +343,7 @@ class RunnerSimulation {
     }
     floatingTexts.add(
       RunnerFloatingText(
-        x: RunnerConfig.playerX,
+        x: playerWorldX,
         y: player.y + player.height + 20,
         text: character.abilityName,
         critical: true,
@@ -371,7 +372,7 @@ class RunnerSimulation {
     }
     floatingTexts.add(
       RunnerFloatingText(
-        x: RunnerConfig.playerX,
+        x: playerWorldX,
         y: player.y + player.height + 28,
         text: character.ultimateName,
         critical: true,
@@ -392,7 +393,7 @@ class RunnerSimulation {
     _spawnVfx('dash');
     _spawnVfx('afterimage');
     final box = RunnerRect(
-      RunnerConfig.playerX,
+      playerWorldX,
       player.y,
       160,
       player.height,
@@ -410,7 +411,7 @@ class RunnerSimulation {
     _spawnVfx('mark');
     for (final e in enemies) {
       if (e.dead) continue;
-      if (e.x > RunnerConfig.playerX - 20 && e.x < RunnerConfig.playerX + 420) {
+      if (e.x > playerWorldX - 20 && e.x < playerWorldX + 420) {
         e.marked = true;
         e.markTimer = 6;
       }
@@ -422,7 +423,7 @@ class RunnerSimulation {
     player.comboStep = 3;
     _spawnVfx('slash');
     final box = RunnerRect(
-      RunnerConfig.playerX + 10,
+      playerWorldX + 10,
       player.y,
       RunnerConfig.meleeRange * 1.55,
       RunnerConfig.meleeHeight * 1.2,
@@ -452,7 +453,7 @@ class RunnerSimulation {
     _spawnVfx('dash');
     for (var i = 0; i < 3; i++) {
       final box = RunnerRect(
-        RunnerConfig.playerX + i * 50.0,
+        playerWorldX + i * 50.0,
         player.y,
         90,
         player.height + 10,
@@ -475,7 +476,7 @@ class RunnerSimulation {
     for (var i = 0; i < 8; i++) {
       projectiles.add(
         RunnerProjectile(
-          x: RunnerConfig.playerX + 80 + i * 42.0,
+          x: playerWorldX + 80 + i * 42.0,
           y: player.y + 140 + _rng.nextDouble() * 40,
           vx: 40,
           vy: -420 - _rng.nextDouble() * 80,
@@ -492,7 +493,7 @@ class RunnerSimulation {
     _spawnVfx('wave');
     projectiles.add(
       RunnerProjectile(
-        x: RunnerConfig.playerX + 50,
+        x: playerWorldX + 50,
         y: player.y + player.height * 0.5,
         vx: 480,
         damage: player.meleeDamage * 2.8,
@@ -527,11 +528,11 @@ class RunnerSimulation {
 
   void _spawnVfx(String key) {
     final mapped = switch (key) {
-      'slash' => '${character.id == 'blade' ? 'blade' : character.id == 'phantom' ? 'phantom' : 'runner'}_slash',
+      'slash' =>
+        '${character.id == 'blade' ? 'blade' : character.id == 'phantom' ? 'phantom' : 'runner'}_slash',
       'dash' => 'runner_dash',
-      'afterimage' => character.id == 'phantom'
-          ? 'phantom_phase'
-          : 'runner_afterimage',
+      'afterimage' =>
+        character.id == 'phantom' ? 'phantom_phase' : 'runner_afterimage',
       'muzzle' => 'hunter_muzzle',
       'mark' => 'hunter_mark',
       'wave' => 'blade_wave',
@@ -541,12 +542,11 @@ class RunnerSimulation {
       _ => 'runner_slash',
     };
     // Remap character-specific slash for hunter
-    final vfxKey = character.id == 'hunter' && key == 'slash'
-        ? 'hunter_impact'
-        : mapped;
+    final vfxKey =
+        character.id == 'hunter' && key == 'slash' ? 'hunter_impact' : mapped;
     particles.add(
       RunnerParticle(
-        x: RunnerConfig.playerX + 36,
+        x: playerWorldX + 36,
         y: player.y + player.height * 0.55,
         vx: 20,
         vy: 10,
@@ -564,7 +564,7 @@ class RunnerSimulation {
         (finisher ? 1.15 : 1) *
         (character.id == 'blade' ? 1.2 : 1);
     return RunnerRect(
-      RunnerConfig.playerX + player.xOffset + 20,
+      playerWorldX + player.xOffset + 20,
       player.y + 10,
       range,
       RunnerConfig.meleeHeight,
@@ -605,9 +605,8 @@ class RunnerSimulation {
     var blocked = false;
     for (final p in projectiles) {
       if (p.dead || p.fromPlayer) continue;
-      final radius = p.kind == ProjectileKind.voidWave
-          ? 28.0
-          : RunnerConfig.rangedRadius;
+      final radius =
+          p.kind == ProjectileKind.voidWave ? 28.0 : RunnerConfig.rangedRadius;
       final pb = RunnerRect(
         p.x - radius,
         p.y - radius,
@@ -781,8 +780,9 @@ class RunnerSimulation {
       player.dodgeTimer -= dt;
       final dur = player.abilityTimer > 0 ? 0.4 : RunnerConfig.dodgeDuration;
       final tt = 1 - (player.dodgeTimer / dur).clamp(0.0, 1.0);
-      player.xOffset =
-          sin(tt * pi) * (player.abilityTimer > 0 ? 48 : 28) * player.dodgeDir;
+      player.xOffset = sin(tt * pi) *
+          (player.abilityTimer > 0 ? 56 : RunnerConfig.dodgeAmplitude) *
+          player.dodgeDir;
       if (player.dodgeTimer <= 0) {
         player.dodging = false;
         player.xOffset = 0;
@@ -808,7 +808,7 @@ class RunnerSimulation {
       player.rangedReloadTimer -= dt;
       if (player.rangedReloadTimer <= 0) {
         player.rangedCharges = player.rangedMaxCharges;
-        _burst(RunnerConfig.playerX, player.y + 50, 10, _accentColor);
+        _burst(playerWorldX, player.y + 50, 10, _accentColor);
         _sfx(RunnerSfx.reload);
       }
     }
@@ -836,7 +836,7 @@ class RunnerSimulation {
           player.landTimer = 0.18;
           player.animTime = 0;
         }
-        _burst(RunnerConfig.playerX, player.y + 4, 8, 0x88FFFFFF);
+        _burst(playerWorldX, player.y + 4, 8, 0x88FFFFFF);
         shake = max(shake, 1.5);
       }
     } else if (!player.sliding &&
@@ -956,7 +956,7 @@ class RunnerSimulation {
         e.y = RunnerConfig.groundY;
       }
 
-      final distToPlayer = e.x - RunnerConfig.playerX;
+      final distToPlayer = e.x - playerWorldX;
       _updateEnemyMovement(e, dt, distToPlayer, slow);
       e.x -= scroll;
 
@@ -964,7 +964,7 @@ class RunnerSimulation {
           e.attackCd <= 0 &&
           distToPlayer > 180 &&
           _rng.nextDouble() < 0.012) {
-        e.x = RunnerConfig.playerX + 70 + _rng.nextDouble() * 80;
+        e.x = playerWorldX + 70 + _rng.nextDouble() * 80;
         e.attackCd = e.def.attackCooldown;
         e.ai = EnemyAiState.special;
         e.anim = EnemyAnim.special;
@@ -1106,7 +1106,7 @@ class RunnerSimulation {
   }
 
   void _updateCombat(double dt) {
-    final pBox = player.hitbox(RunnerConfig.playerX);
+    final pBox = player.hitbox(playerWorldX);
     final meleeActive = player.meleeTimer > 0;
     final meleeBox = meleeActive ? _meleeHitbox() : null;
     if (meleeBox != null) {
@@ -1115,9 +1115,8 @@ class RunnerSimulation {
 
     for (final p in projectiles) {
       if (p.dead) continue;
-      final radius = p.kind == ProjectileKind.voidWave
-          ? 28.0
-          : RunnerConfig.rangedRadius;
+      final radius =
+          p.kind == ProjectileKind.voidWave ? 28.0 : RunnerConfig.rangedRadius;
       final pb = RunnerRect(
         p.x - radius,
         p.y - radius,
@@ -1158,8 +1157,14 @@ class RunnerSimulation {
         continue;
       }
 
-      if (player.invulnerable || player.health <= 0) continue;
+      if (player.health <= 0) continue;
       if (!pb.overlaps(pBox)) continue;
+      // Dodge / i-frames let shots pass through instead of waiting to hit later.
+      if (player.dodging || player.invulnerable) {
+        p.dead = true;
+        _burst(p.x, p.y, 8, p.colorValue);
+        continue;
+      }
       _playerHit(
         max(1, p.damage.round()),
         disrupt: p.kind == ProjectileKind.electric,
@@ -1171,6 +1176,9 @@ class RunnerSimulation {
 
     for (final e in enemies) {
       if (e.dead || e.ai == EnemyAiState.death) continue;
+      if (!e.flying && !player.onGround && player.y >= e.height * 0.55) {
+        continue;
+      }
       if (!pBox.overlaps(e.hitbox)) continue;
       _playerHit(
         e.damage,
@@ -1214,9 +1222,8 @@ class RunnerSimulation {
   void _playerHit(int dmg, {bool disrupt = false}) {
     if (player.invulnerable) return;
     final mitigated = max(1, (dmg / player.armorMul).round());
-    final applied = character.id == 'blade' && dmg > 1
-        ? max(1, dmg - 1)
-        : mitigated;
+    final applied =
+        character.id == 'blade' && dmg > 1 ? max(1, dmg - 1) : mitigated;
     player.health = (player.health - applied).clamp(0, player.maxHealth);
     player.invulnerable = true;
     player.invulnTimer = RunnerConfig.invulnAfterHit;
@@ -1227,7 +1234,7 @@ class RunnerSimulation {
     run.multiplier = 1;
     run.comboTimer = 0;
     shake = max(shake, 8);
-    _burst(RunnerConfig.playerX, player.y + 40, 12, 0xFFFF3B3B);
+    _burst(playerWorldX, player.y + 40, 12, 0xFFFF3B3B);
     _sfx(RunnerSfx.playerHit);
   }
 
@@ -1245,7 +1252,7 @@ class RunnerSimulation {
     final bossDef = director.maybeBoss(run.survived, dt);
     if (bossDef == null) return;
     _id += 1;
-    final baseX = RunnerConfig.playerX + 520 + _rng.nextDouble() * 80;
+    final baseX = playerWorldX + 520 + _rng.nextDouble() * 80;
     enemies.add(
       RunnerEnemy(
         id: 'e$_id',
@@ -1270,7 +1277,7 @@ class RunnerSimulation {
 
     final def = director.pickRegular(t);
     _id += 1;
-    final baseX = RunnerConfig.playerX + 520 + _rng.nextDouble() * 180;
+    final baseX = playerWorldX + 520 + _rng.nextDouble() * 180;
     enemies.add(
       RunnerEnemy(
         id: 'e$_id',

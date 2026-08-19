@@ -1,6 +1,18 @@
 import '../../core/constants/app_constants.dart';
 import '../local/key_value_store.dart';
 
+enum ControlScheme {
+  swipes,
+  buttons;
+
+  static ControlScheme fromId(String? id) => switch (id) {
+        'buttons' => ControlScheme.buttons,
+        _ => ControlScheme.swipes,
+      };
+
+  String get id => name;
+}
+
 class AppSettings {
   AppSettings({
     this.masterVolume = 1.0,
@@ -12,6 +24,7 @@ class AppSettings {
     this.sfxEnabled = true,
     this.vibrationEnabled = true,
     this.localeCode = 'en',
+    this.controlScheme = ControlScheme.swipes,
   });
 
   double masterVolume;
@@ -25,6 +38,7 @@ class AppSettings {
   bool sfxEnabled;
   bool vibrationEnabled;
   String localeCode;
+  ControlScheme controlScheme;
 
   Map<String, dynamic> toJson() => {
         'masterVolume': masterVolume,
@@ -36,6 +50,7 @@ class AppSettings {
         'sfxEnabled': sfxEnabled,
         'vibrationEnabled': vibrationEnabled,
         'localeCode': localeCode,
+        'controlScheme': controlScheme.id,
       };
 
   factory AppSettings.fromJson(Map<String, dynamic> json) {
@@ -59,6 +74,7 @@ class AppSettings {
       sfxEnabled: sfxEnabled,
       vibrationEnabled: json['vibrationEnabled'] as bool? ?? true,
       localeCode: json['localeCode'] as String? ?? 'en',
+      controlScheme: ControlScheme.fromId(json['controlScheme'] as String?),
     );
   }
 }
@@ -69,7 +85,8 @@ class SettingsRepository {
   final KeyValueStore _storage;
 
   AppSettings read() {
-    final raw = _storage.read<Map<String, dynamic>>(AppConstants.storageSettings);
+    final raw =
+        _storage.read<Map<String, dynamic>>(AppConstants.storageSettings);
     if (raw == null) return AppSettings();
     return AppSettings.fromJson(raw);
   }

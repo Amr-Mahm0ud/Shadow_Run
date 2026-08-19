@@ -8,6 +8,7 @@ import '../../core/config/feature_flags.dart';
 import '../../core/l10n/app_localizations.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/responsive.dart';
+import '../../data/repositories/settings_repository.dart';
 import '../../game/characters/character_assets.dart';
 import '../../game/enemies/enemy_assets.dart';
 import '../../game/player/characters.dart';
@@ -20,6 +21,7 @@ import '../../services/service_locator.dart';
 import '../home/home_screen.dart';
 import '../settings/settings_screen.dart';
 import 'pause_menu.dart';
+import 'runner_button_controls.dart';
 import 'runner_gesture_layer.dart';
 import 'runner_world_painter.dart';
 
@@ -98,7 +100,6 @@ class _ActionRunnerScreenState extends State<ActionRunnerScreen>
       if (_countdown <= 1) {
         t.cancel();
         _sim.startPlaying();
-        AppServices.feedback.setGameplayMusic(true);
         setState(() => _countdown = 0);
         return;
       }
@@ -191,7 +192,6 @@ class _ActionRunnerScreenState extends State<ActionRunnerScreen>
   void _home() {
     _countdownTimer?.cancel();
     _ticker.stop();
-    AppServices.feedback.setGameplayMusic(false);
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(builder: (_) => const HomeScreen()),
     );
@@ -202,7 +202,7 @@ class _ActionRunnerScreenState extends State<ActionRunnerScreen>
       MaterialPageRoute(builder: (_) => const SettingsScreen()),
     );
     if (mounted) {
-      AppServices.feedback.setGameplayMusic(true);
+      await AppServices.feedback.applyVolumes();
       setState(() {});
     }
   }
@@ -211,7 +211,6 @@ class _ActionRunnerScreenState extends State<ActionRunnerScreen>
   void dispose() {
     _countdownTimer?.cancel();
     _ticker.dispose();
-    // If leaving the run without going through Home, restore menu level.
     AppServices.feedback.setGameplayMusic(false);
     super.dispose();
   }
@@ -221,73 +220,89 @@ class _ActionRunnerScreenState extends State<ActionRunnerScreen>
     final responsive = Responsive.of(context);
     final playing = _sim.phase == RunnerPhase.playing;
     final paused = _sim.phase == RunnerPhase.paused;
+    final useButtons =
+        AppServices.settings.read().controlScheme == ControlScheme.buttons;
+    _sim.playerWorldX =
+        useButtons ? RunnerConfig.playerXButtons : RunnerConfig.playerX;
+
+    final world = Stack(
+      fit: StackFit.expand,
+      children: [
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final groundY = constraints.maxHeight * 0.72;
+            return CustomPaint(
+              painter: RunnerWorldPainter(
+                sim: _sim,
+                groundY: groundY,
+                time: _time,
+              ),
+              size: Size(constraints.maxWidth, constraints.maxHeight),
+            );
+          },
+        ),
+        _RunnerHud(
+          sim: _sim,
+          responsive: responsive,
+          onPause: _pauseGame,
+        ),
+        if (_sim.activeBoss != null)
+          _BossBar(boss: _sim.activeBoss!, responsive: responsive),
+        if (_sim.phase == RunnerPhase.countdown)
+          _CountdownOverlay(value: _countdown),
+        if (paused)
+          PauseMenu(
+            onResume: _resumeGame,
+            onRestart: _restart,
+            onSettings: _settings,
+            onHome: _home,
+          ),
+        if (_sim.phase == RunnerPhase.reward ||
+            _sim.phase == RunnerPhase.dead && _rewardsSaved)
+          _RunnerRewardOverlay(
+            sim: _sim,
+            onRetry: _restart,
+            onHome: _home,
+          ),
+        if (playing && useButtons)
+          RunnerButtonControls(
+            onInput: _onGesture,
+            abilityReady: _sim.player.abilityReady,
+            ultimateReady: _sim.player.ultimateReady,
+            dodgeReady: _sim.player.dodgeCooldown <= 0,
+            rangedCharges: _sim.player.rangedCharges,
+          ),
+        if (playing && !useButtons && _sim.run.survived < 5)
+          Positioned(
+            left: 16,
+            right: 16,
+            bottom: 12,
+            child: IgnorePointer(
+              child: Text(
+                AppLocalizations.of(context).hintControls,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: AppColors.mist.withValues(alpha: 0.8),
+                  fontSize: responsive.sp(12),
+                  letterSpacing: 0.3,
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
 
     return Scaffold(
       backgroundColor: AppColors.voidBlack,
-      body: RunnerGestureLayer(
-        enabled: playing && !paused,
-        ultimateReady: _sim.player.ultimateReady,
-        abilityReady: _sim.player.abilityReady,
-        onGesture: _onGesture,
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            LayoutBuilder(
-              builder: (context, constraints) {
-                final groundY = constraints.maxHeight * 0.72;
-                return CustomPaint(
-                  painter: RunnerWorldPainter(
-                    sim: _sim,
-                    groundY: groundY,
-                    time: _time,
-                  ),
-                  size: Size(constraints.maxWidth, constraints.maxHeight),
-                );
-              },
+      body: useButtons
+          ? world
+          : RunnerGestureLayer(
+              enabled: playing && !paused,
+              ultimateReady: _sim.player.ultimateReady,
+              abilityReady: _sim.player.abilityReady,
+              onGesture: _onGesture,
+              child: world,
             ),
-            _RunnerHud(
-              sim: _sim,
-              responsive: responsive,
-              onPause: _pauseGame,
-            ),
-            if (_sim.activeBoss != null)
-              _BossBar(boss: _sim.activeBoss!, responsive: responsive),
-            if (_sim.phase == RunnerPhase.countdown)
-              _CountdownOverlay(value: _countdown),
-            if (paused)
-              PauseMenu(
-                onResume: _resumeGame,
-                onRestart: _restart,
-                onSettings: _settings,
-                onHome: _home,
-              ),
-            if (_sim.phase == RunnerPhase.reward ||
-                _sim.phase == RunnerPhase.dead && _rewardsSaved)
-              _RunnerRewardOverlay(
-                sim: _sim,
-                onRetry: _restart,
-                onHome: _home,
-              ),
-            if (playing && _sim.run.survived < 5)
-              Positioned(
-                left: 16,
-                right: 16,
-                bottom: 12,
-                child: IgnorePointer(
-                  child: Text(
-                    AppLocalizations.of(context).hintControls,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: AppColors.mist.withValues(alpha: 0.8),
-                      fontSize: responsive.sp(12),
-                      letterSpacing: 0.3,
-                    ),
-                  ),
-                ),
-              ),
-          ],
-        ),
-      ),
     );
   }
 }
@@ -383,7 +398,8 @@ class _AbilityMeters extends StatelessWidget {
         (player.ultimateCharge / player.ultimateChargeMax).clamp(0.0, 1.0);
     return Row(
       children: [
-        _miniMeter(l10n.ability, abilityPct, AppColors.neonCyan, player.abilityReady),
+        _miniMeter(
+            l10n.ability, abilityPct, AppColors.neonCyan, player.abilityReady),
         const SizedBox(width: 8),
         _miniMeter(l10n.ult, ultPct, AppColors.gold, player.ultimateReady),
       ],

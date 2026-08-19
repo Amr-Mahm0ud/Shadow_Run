@@ -74,6 +74,41 @@ void main() {
     expect(sim.player.invulnerable, isTrue);
   });
 
+  test('dodge avoids overlapping ranged shots', () {
+    final sim = RunnerSimulation(seed: 14);
+    sim.startPlaying();
+    final hp = sim.player.health;
+    sim.projectiles.add(
+      RunnerProjectile(
+        x: RunnerConfig.playerX + 20,
+        y: 36,
+        vx: -400,
+        damage: 1,
+        critical: false,
+        fromPlayer: false,
+      ),
+    );
+    sim.bufferInput(RunnerInput.dodgeRight);
+    sim.tick(0.016);
+    expect(sim.player.dodging, isTrue);
+    expect(sim.player.health, hp);
+    expect(sim.projectiles.every((p) => p.dead), isTrue);
+  });
+
+  test('jump height clears a floor spike without a huge leap', () {
+    final sim = RunnerSimulation(seed: 15);
+    sim.startPlaying();
+    sim.bufferInput(RunnerInput.jump);
+    var peak = 0.0;
+    for (var i = 0; i < 80; i++) {
+      sim.tick(0.016);
+      if (sim.player.y > peak) peak = sim.player.y;
+    }
+    expect(peak, greaterThan(32));
+    expect(peak, lessThan(100));
+    expect(sim.player.onGround, isTrue);
+  });
+
   test('pause freezes simulation progress', () {
     final sim = RunnerSimulation(seed: 5);
     sim.startPlaying();

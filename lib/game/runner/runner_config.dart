@@ -3,20 +3,26 @@ class RunnerConfig {
   RunnerConfig._();
 
   static const double gravity = 2200;
-  static const double jumpVelocity = 780;
-  static const double maxJumpVelocity = 980;
+
+  /// Hop just over ground enemies (~66–74) and floor spikes (~30).
+  static const double jumpVelocity = 590;
+  static const double maxJumpVelocity = 640;
   static const double groundY = 0; // simulation space; painter maps to screen
   static const double runSpeedBase = 320;
   static const double playerX = 140;
+
+  /// Shifted right so left-hand buttons do not cover the runner.
+  static const double playerXButtons = 248;
 
   static const double playerWidth = 48;
   static const double playerHeight = 72;
   static const double slideHeight = 40;
 
   static const double dodgeSpeed = 520;
-  static const double dodgeDuration = 0.22;
+  static const double dodgeDuration = 0.28;
   static const double dodgeCooldown = 0.85;
-  static const double dodgeIFrame = 0.22;
+  static const double dodgeIFrame = 0.28;
+  static const double dodgeAmplitude = 46;
 
   static const double slideDuration = 0.55;
 

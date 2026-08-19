@@ -91,8 +91,20 @@ class AppLocalizations {
       'retry': 'RETRY',
       'ability': 'ABLI',
       'ult': 'ULT',
+      'controlScheme': 'Controls',
+      'controlSchemeSubtitle': 'On-screen buttons or swipe gestures',
+      'controlsSwipes': 'Swipes',
+      'controlsButtons': 'Buttons',
+      'btnJump': 'JUMP',
+      'btnSlide': 'SLIDE',
+      'btnDodge': 'DODGE',
+      'btnMelee': 'MELEE',
+      'btnRanged': 'SHOT',
+      'btnAbility': 'ABILITY',
       'hintControls':
           '↑ jump  ↓ slide  ←→ dodge   TAP melee   HOLD ranged   DOUBLE-TAP ability/ult',
+      'hintControlsButtons':
+          'Buttons: jump · slide · dodge shots · melee · ranged · ability',
       'musicCredit':
           'Music: SHADOW//RUN main theme loop (assets/audio/shadow_run_main_theme.mp3)',
     },
@@ -122,12 +134,10 @@ class AppLocalizations {
       'missionsHint': 'تُعاد يوميًا · استلم المكافآت عند الإكمال',
       'claim': 'استلام',
       'claimed': 'تم الاستلام',
-      'missionReward':
-          '{current} / {target}  ·  +{coins} عملة  ·  +{xp} خبرة',
+      'missionReward': '{current} / {target}  ·  +{coins} عملة  ·  +{xp} خبرة',
       'claimedSnack': 'تم الاستلام +{coins} عملة، +{xp} خبرة{gems}',
       'gemsPart': '، +{gems} جواهر',
-      'highScoresEmpty':
-          'لا توجد جولات بعد.\nأنهِ جولة لتسجيل أول نتيجة.',
+      'highScoresEmpty': 'لا توجد جولات بعد.\nأنهِ جولة لتسجيل أول نتيجة.',
       'place1': 'الأول',
       'place2': 'الثاني',
       'place3': 'الثالث',
@@ -166,8 +176,20 @@ class AppLocalizations {
       'retry': 'إعادة',
       'ability': 'قدرة',
       'ult': 'نهائية',
+      'controlScheme': 'التحكم',
+      'controlSchemeSubtitle': 'أزرار على الشاشة أو حركات السحب',
+      'controlsSwipes': 'سحب',
+      'controlsButtons': 'أزرار',
+      'btnJump': 'قفز',
+      'btnSlide': 'انزلاق',
+      'btnDodge': 'مراوغة',
+      'btnMelee': 'هجوم',
+      'btnRanged': 'رمي',
+      'btnAbility': 'قدرة',
       'hintControls':
           '↑ قفز  ↓ انزلاق  ←→ مراوغة   نقرة هجوم   مطوّلة رمي   نقرتان قدرة/نهائية',
+      'hintControlsButtons':
+          'الأزرار: قفز · انزلاق · مراوغة للطلقات · هجوم · رمي · قدرة',
       'musicCredit':
           'الموسيقى: ثيم SHADOW//RUN الرئيسي (assets/audio/shadow_run_main_theme.mp3)',
     },
@@ -263,6 +285,17 @@ class AppLocalizations {
   String get ability => _t('ability');
   String get ult => _t('ult');
   String get hintControls => _t('hintControls');
+  String get hintControlsButtons => _t('hintControlsButtons');
+  String get controlScheme => _t('controlScheme');
+  String get controlSchemeSubtitle => _t('controlSchemeSubtitle');
+  String get controlsSwipes => _t('controlsSwipes');
+  String get controlsButtons => _t('controlsButtons');
+  String get btnJump => _t('btnJump');
+  String get btnSlide => _t('btnSlide');
+  String get btnDodge => _t('btnDodge');
+  String get btnMelee => _t('btnMelee');
+  String get btnRanged => _t('btnRanged');
+  String get btnAbility => _t('btnAbility');
   String get musicCredit => _t('musicCredit');
 
   String missionTitle(String id) {
@@ -343,8 +376,7 @@ class _AppLocalizationsDelegate
   const _AppLocalizationsDelegate();
 
   @override
-  bool isSupported(Locale locale) =>
-      ['en', 'ar'].contains(locale.languageCode);
+  bool isSupported(Locale locale) => ['en', 'ar'].contains(locale.languageCode);
 
   @override
   Future<AppLocalizations> load(Locale locale) {
